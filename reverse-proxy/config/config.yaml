@@ -1,0 +1,45 @@
+port: 3000
+servers:
+  - name: jsonplaceholder
+    host: jsonplaceholder.typicode.com
+    port: 443
+    protocol: https
+  - name: weather
+    host: api.open-meteo.com
+    port: 443
+    protocol: https
+    prepath: /v1
+  - name: pokeapi
+    host: pokeapi.co
+    port: 443
+    protocol: https
+    prepath: /api/v2
+  - name: localhost1
+    host: localhost
+    protocol: http
+    port: 3001
+  - name: localhost2
+    host: localhost
+    protocol: http
+    port: 3002
+  - name: localhost3
+    host: localhost
+    protocol: http
+    port: 3003
+paths:
+  - path: /api/jsonplaceholder
+    server: [jsonplaceholder]
+  - path: /api/weather
+    server: [weather]
+  - path: /api/pokeapi
+    server: [pokeapi]
+  - path: /api/localhost
+    server: [localhost1, localhost2, localhost3]
+  - path: /
+    server: [localhost1, localhost2, localhost3]
+rate_limit:
+  strategy: TokenBucketStrategy
+  capacity: 10
+  refillRate: 1
+  refillIntervalInSec: 10
+  maxSize: 2
