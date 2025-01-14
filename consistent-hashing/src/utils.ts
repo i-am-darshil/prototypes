@@ -23,7 +23,7 @@ function generateId(threadId: number = Math.floor(Math.random() * MAX_THREAD_ID)
     throw new Error(`Thread ID must be between 0 and ${MAX_THREAD_ID - 1}`);
   }
 
-  // Pack time (24 MSB) and threadId (10 LSB) into a 32-bit integer
+  // Pack time (22 MSB) and threadId (10 LSB) into a 32-bit integer
   const id = ((currentTime << 10) | threadId) >>> 0; // Convert to unsigned 32-bit integer;
 
   return id;
