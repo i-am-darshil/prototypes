@@ -4,7 +4,7 @@
 - [ ] Implement Routing - GET, POST, PUT, DELETE ✅
 - [ ] Implement Load Balancing ✅
 - [ ] Implement Rate Limiting ✅
-- [ ] Implement Logging
+- [ ] Implement Logging ✅
 
 ## Architecture choice
 
