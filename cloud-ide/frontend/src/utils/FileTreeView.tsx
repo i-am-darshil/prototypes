@@ -1,13 +1,70 @@
+"use client"
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 import { TreeItem } from '@mui/x-tree-view/TreeItem';
+import { useWebSocket } from "@/contexts/WebSocketContext"
 
-export function FileTreeView() {
+export function FileTreeView({project_name}: {project_name: string}) {
+
+  const { socket } = useWebSocket();
+
+  React.useEffect(() => {
+    console.log(`socket?.id: ${socket?.id}`)
+    socket?.emit("file-directory-request", {
+      name: project_name
+    })
+
+    socket?.on("file-directory-response", (data) => {
+      console.log(`file-directory-response: ${JSON.stringify(data)}`)
+      setFolderStructure(data.output)
+    })
+  }, [socket])
+
+  const [folderStructure, setFolderStructure] = React.useState<any>({
+    "sub1": {
+      "sub2": {
+        "abc2.txt": null
+      },
+      "abc1.txt": null
+    },
+    "sub2": {
+      "abc.txt": null
+    }
+  });
+
+  const onClickListener = (itemId: any) => {
+    console.log(itemId)
+  }
+
+  const convertToTreeItems = (data: any, parentId = '') => {
+    return Object.entries(data).map(([key, value], index) => {
+      const itemId = `${parentId}/${key}`; // Create a unique itemId for each TreeItem
+      if (value === null) {
+        // It's a file (leaf node)
+        return <TreeItem itemId={itemId} key={itemId} label={key} onClick={(e) => {
+          onClickListener(itemId)
+          console.log(e)
+        }}/>;
+      } else {
+        // It's a folder (has children)
+        return (
+          <TreeItem itemId={itemId} key={itemId} label={key} onClick={(e) => {
+            onClickListener(itemId)
+            console.log(e)
+          }}>
+            {convertToTreeItems(value, itemId)}
+          </TreeItem>
+        );
+      }
+    });
+  };
+
   return (
     <Box sx={{ minHeight: 352, minWidth: 250 }}>
       <SimpleTreeView>
-        <TreeItem itemId="grid" label="Data Grid">
+      {convertToTreeItems(folderStructure, project_name)}
+        {/* <TreeItem itemId="grid" label="Data Grid">
           <TreeItem itemId="grid-community" label="@mui/x-data-grid" />
           <TreeItem itemId="grid-pro" label="@mui/x-data-grid-pro" />
           <TreeItem itemId="grid-premium" label="@mui/x-data-grid-premium" />
@@ -21,7 +78,7 @@ export function FileTreeView() {
         </TreeItem>
         <TreeItem itemId="tree-view" label="Tree View">
           <TreeItem itemId="tree-view-community" label="@mui/x-tree-view" />
-        </TreeItem>
+        </TreeItem> */}
       </SimpleTreeView>
     </Box>
   );

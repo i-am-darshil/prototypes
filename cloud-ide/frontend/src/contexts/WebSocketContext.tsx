@@ -17,6 +17,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     socketInstance.on("connect", () => {
       console.log("Socket.IO connection established:", socketInstance.id);
+      setSocket(socketInstance);
     });
 
     socketInstance.on("disconnect", () => {

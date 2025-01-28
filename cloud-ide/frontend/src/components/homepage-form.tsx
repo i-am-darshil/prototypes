@@ -29,21 +29,24 @@ import { useWebSocket } from "@/contexts/WebSocketContext"
 import { useRouter } from 'next/navigation'
 
 const formSchema = z.object({
-  projectName: z.string().min(2).max(50),
-  projectType: z.string().min(2).max(50),
+  projectName: z.string().min(6).max(50),
+  projectType: z.string().min(1).max(50),
+  hostName: z.string().min(1).max(500),
 })
 
 export default function HomepageForm() {
   const router = useRouter()
   const { socket } = useWebSocket();
-  const [projectName, setProjectName] = useState<string>(generateRandomWords(2, 6));
+  // const [projectName, setProjectName] = useState<string>(generateRandomWords(2, 6));
+  // const [hostName, setHostName] = useState<string>("");
 
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      projectName: projectName,
-      projectType: "python"
+      projectName: generateRandomWords(2, 6),
+      projectType: "python",
+      hostName: ""
     },
   })
 
@@ -53,7 +56,11 @@ export default function HomepageForm() {
     // ✅ This will be type-safe and validated.
     console.log(values)
     if (!socket) return;
-    socket.emit("create-project", values);
+    socket.emit("create-project", {
+      name: values.projectName,
+      type: values.projectType,
+      host: values.hostName,
+    });
     router.push(`/project/${values.projectName}?projectType=${values.projectType}`)
   }
 
@@ -68,7 +75,7 @@ export default function HomepageForm() {
             <FormItem>
               <FormLabel>Project Name</FormLabel>
               <FormControl>
-                <Input {...field} value={projectName} onChange={(e) => {setProjectName(e.target.value)}} />
+                <Input {...field} />
               </FormControl>
               <FormDescription>
                 This is your public project name.
@@ -85,15 +92,15 @@ export default function HomepageForm() {
             <FormItem>
               <FormLabel>Project Type</FormLabel>
               <FormControl>
-              <Select>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Python" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="python">Python</SelectItem>
-                  <SelectItem value="node">NodeJS</SelectItem>
-                </SelectContent>
-              </Select>
+                <Select {...field}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Python" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="python">Python</SelectItem>
+                    <SelectItem value="node">NodeJS</SelectItem>
+                  </SelectContent>
+                </Select>
               </FormControl>
               <FormDescription>
                 An environment will be setup accordingly.
@@ -102,6 +109,24 @@ export default function HomepageForm() {
             </FormItem>
           )}
         />
+
+        <FormField
+          control={form.control}
+          name="hostName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Host Name</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormDescription>
+                Connect your IDE to this docker host.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <Button type="submit">Submit</Button>
       </form>
     </Form>

@@ -7,6 +7,7 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const http_1 = __importDefault(require("http"));
 const socket_io_1 = require("socket.io");
+const project_1 = __importDefault(require("./project"));
 const app = (0, express_1.default)();
 const server = http_1.default.createServer(app);
 const io = new socket_io_1.Server(server, {
@@ -16,18 +17,84 @@ const io = new socket_io_1.Server(server, {
     },
 });
 const PORT = 4000;
+const PROJECT_NAME_TO_PROJECT_MAP = {};
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 // Example API route
-app.get('/api/hello', (req, res) => {
-    res.json({ message: 'Hello from TypeScript Express!' });
+app.get("/api/hello", (req, res) => {
+    res.json({ message: "Hello from TypeScript Express!" });
 });
 io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id}`);
+    socket.on("code-editor-details", (data) => {
+        console.log("code-editor-details: ", data, socket.id);
+        const project = PROJECT_NAME_TO_PROJECT_MAP[data.name];
+        socket.emit("code-editor-details-response", {
+            name: project?.name,
+            type: project?.type,
+            status: project?.status,
+        });
+    });
+    socket.on("file-directory-request", async (data) => {
+        console.log("file-directory-request:", data, socket.id);
+        const project = PROJECT_NAME_TO_PROJECT_MAP[data.name];
+        let output = {};
+        if (project) {
+            output = await project.getFileDirectory();
+        }
+        console.log(`file-directory-response: ${JSON.stringify(output)}`);
+        socket.emit("file-directory-response", {
+            name: project?.name,
+            output: output
+        });
+    });
+    socket.on("terminal-run-command", async (data) => {
+        console.log("terminal-run-command:", data, socket.id);
+        console.log(JSON.stringify(PROJECT_NAME_TO_PROJECT_MAP));
+        const project = PROJECT_NAME_TO_PROJECT_MAP[data.name];
+        let output = "";
+        const command = data.input;
+        if (!project) {
+            output = "Project not found!";
+        }
+        else {
+            const stream = await project.runCommand(command);
+            if (stream) {
+                // Get the output of the Python command
+                let output = '';
+                stream.on('data', (data) => {
+                    output += data.toString();
+                });
+                stream.on('end', () => {
+                    console.log(`${command} command output:`, output);
+                    socket.emit("terminal-run-command-response", {
+                        name: project?.name,
+                        output: output
+                    });
+                });
+                return;
+            }
+            else {
+                output = "Environment not found!";
+            }
+        }
+        socket.emit("terminal-run-command-response", {
+            name: project?.name,
+            output: output
+        });
+    });
     // Example event listener
-    socket.on("create-project", (data) => {
+    socket.on("create-project", async (data) => {
         console.log("Project Data:", data);
-        // socket.emit("project-created", { success: true, projectName: data.name });
+        const project = new project_1.default(data.name, data.type, data.host);
+        PROJECT_NAME_TO_PROJECT_MAP[project.name] = project;
+        await project.create();
+        socket.emit("create-project-success", {
+            name: project.name,
+            type: project.type,
+            status: project.status,
+        });
+        console.log(JSON.stringify(PROJECT_NAME_TO_PROJECT_MAP));
     });
     socket.on("disconnect", () => {
         console.log(`User disconnected: ${socket.id}`);
