@@ -22,9 +22,10 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     socketInstance.on("disconnect", () => {
       console.log("Socket.IO connection disconnected");
+      setSocket(socketInstance);
     });
 
-    setSocket(socketInstance);
+    // setSocket(socketInstance);
 
     // Cleanup the socket connection on unmount
     return () => {

@@ -1,37 +1,54 @@
 "use client"
 import Editor from "@monaco-editor/react";
 import { useWebSocket } from "@/contexts/WebSocketContext"
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 
 export function CodeEditorComponent({project_name}: {project_name: string}) {
 
-  // function editorDidMount(editor:any, monaco:any) {
-  //   console.log('editorDidMount', editor);
-  //   editor.focus();
-  // }
   const { socket } = useWebSocket();
-  const [state, setState] = useState<string>("");
+  const [fileContent, setFileContent] = useState<string>("# Start coding..");
+  const [filePath, setFilePath] = useState<string>("");
 
-  
+  const fileContentRef = useRef(fileContent);
+  const filePathRef = useRef(filePath);
 
   useEffect(() => {
-    console.log(`CodeEditorComponent socket: ${socket?.id}`)
-    socket?.emit("code-editor-details", {sender: "codeEditor", name: project_name})
+    fileContentRef.current = fileContent;
+    filePathRef.current = filePath;
+  }, [fileContent, filePath]);
 
-    socket?.on("code-editor-details-response", (data) => {
-      console.log("code-editor-details-response event recieved")
-      console.log(JSON.stringify(data))
-    })
-
-    socket?.on("create-project-success", (data) => {
-      console.log("create-project-success event recieved")
-      console.log(JSON.stringify(data))
-    })
-  }, [])
+  useEffect(() => {
+    console.log(`CodeEditorComponent socket: ${socket?.id}`);
+  
+    const handler = (data: any) => {
+      console.log(`fileContent: ${fileContentRef.current}, filePath: ${filePathRef.current}, project_name: ${project_name}: ${filePath.includes(project_name)}`)
+      console.log(`code-editor-details-response event received: ${JSON.stringify(data)}`);
+  
+      if (filePathRef.current.includes(project_name)) {
+        socket?.emit("save-file-content-request", {
+          name: project_name,
+          filePath: filePathRef.current,
+          fileContent: fileContentRef.current
+        });
+      }
+  
+      setFileContent(data.output);
+      setFilePath(data.filePath);
+    };
+  
+    socket?.on("file-content-response", handler);
+  
+    return () => {
+      socket?.off("file-content-response", handler);
+    };
+  }, [socket, project_name]);
+  
 
   function onCodeChange(newValue: any, e: any){
-    console.log('onChange', newValue, e)
+    // console.log(`fileContent: ${fileContent}, filePath: ${filePath}, project_name: ${project_name}: ${filePath.includes(project_name)}`)
+    // console.log('onChange', newValue, e)
+    setFileContent(newValue)
   }
 
   return (
@@ -39,9 +56,10 @@ export function CodeEditorComponent({project_name}: {project_name: string}) {
         <Editor
           height="100%"
           defaultLanguage="python"
-          defaultValue="# Start coding..."
+          defaultValue="# Start coding.."
           theme="vs-dark"
           onChange={onCodeChange}
+          value={fileContent}
           // onMount={editorDidMount}
         />
     </div>

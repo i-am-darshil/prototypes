@@ -27,6 +27,33 @@ class Project {
             });
             this.dockerConn = docker;
             console.log(`Created docker conntection: ${JSON.stringify(docker)}`);
+            const streamPull = await docker.pull("python:3.11-slim");
+            let outputPull = "";
+            streamPull.on("data", (chunk) => {
+                outputPull += chunk.toString();
+            });
+            await new Promise((resolve, reject) => {
+                streamPull.on("end", resolve);
+                streamPull.on("error", reject);
+            });
+            console.log(`outputPull: ${outputPull}`);
+            try {
+                const existingContainers = await docker.listContainers();
+                console.log(`existingContainers: ${JSON.stringify(existingContainers)}`);
+                const existingContainerList = existingContainers.filter((existingContainer) => existingContainer.Names.includes("/" + this.name));
+                if (existingContainerList.length > 0) {
+                    const existingContainer = docker.getContainer(this.name);
+                    console.log(`existingContainer: ${JSON.stringify(existingContainer)}`);
+                    if (existingContainer) {
+                        this.container = existingContainer;
+                        this.status = "done";
+                        return;
+                    }
+                }
+            }
+            catch (err) {
+                console.error(`err while getting container: ${err}`);
+            }
             // Define container options
             const containerOptions = {
                 Image: "python:3.11-slim",
@@ -78,6 +105,127 @@ class Project {
         });
         const stream = await exec.start({ Detach: false, stdin: true });
         return stream;
+    }
+    // async saveFileContent(filePath: string, fileContent: string) {
+    //   if (!this.container) {
+    //     return undefined;
+    //   }
+    //   fileContent = fileContent.trim()
+    //   const execBashSaveFileContent = await this.container.exec({
+    //     AttachStdout: true,
+    //     AttachStderr: true,
+    //     Cmd: ["/bin/bash", "-c", `printf %s "${fileContent.replace(/"/g, '\\"')}" > ${filePath}`],
+    //   });
+    //   const streamBashSaveFileContent = await execBashSaveFileContent.start({ Detach: false, stdin: true });
+    //   let outputBashSaveFileContent = "";
+    // streamBashSaveFileContent.on("data", (chunk) => {
+    //   let chunkStr = chunk.toString().trim();
+    //   // Remove leading control characters except newlines (\n)
+    //   chunkStr = chunkStr.replace(/^[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]+/, ""); 
+    //   outputBashSaveFileContent += chunkStr;
+    // });
+    // await new Promise((resolve, reject) => {
+    //   streamBashSaveFileContent.on("end", resolve);
+    //   streamBashSaveFileContent.on("error", reject);
+    // });
+    // console.log(`saveFileContent outputBashSaveFileContent: ${outputBashSaveFileContent}`)
+    // }
+    async saveFileContent(filePath, fileContent) {
+        if (!this.container) {
+            return undefined;
+        }
+        // ✅ Step 1: Truncate the file (clear all previous content)
+        const execBashTruncateFileContent = await this.container.exec({
+            AttachStdout: true,
+            AttachStderr: true,
+            Cmd: ["/bin/bash", "-c", `> "${filePath}"`], // Truncate file
+        });
+        const streamBashTruncateFileContent = await execBashTruncateFileContent.start({ Detach: false });
+        let outputBashTruncateFileContent = "";
+        streamBashTruncateFileContent.on("data", (chunk) => {
+            let chunkStr = chunk.toString().trim();
+            // Remove leading control characters except newlines (\n)
+            chunkStr = chunkStr.replace(/^[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]+/, "");
+            outputBashTruncateFileContent += chunkStr;
+        });
+        await new Promise((resolve, reject) => {
+            streamBashTruncateFileContent.on("end", resolve);
+            streamBashTruncateFileContent.on("error", reject);
+        });
+        console.log(`saveFileContent outputBashTruncateFileContent: ${outputBashTruncateFileContent}`);
+        // ✅ Step 2: Write the new content
+        const execBashSaveFileContent = await this.container.exec({
+            AttachStdout: true,
+            AttachStderr: true,
+            AttachStdin: true,
+            Cmd: ["/bin/bash", "-c", `cat > "${filePath}"`], // Use `cat` safely
+        });
+        // Start the process
+        const streamBashSaveFileContent = await execBashSaveFileContent.start({ Detach: false, stdin: true });
+        let outputBashSaveFileContent = "";
+        streamBashSaveFileContent.on("data", (chunk) => {
+            let chunkStr = chunk.toString().trim();
+            // Remove leading control characters except newlines (\n)
+            chunkStr = chunkStr.replace(/^[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]+/, "");
+            outputBashSaveFileContent += chunkStr;
+        });
+        // Write new content and close stream properly
+        let fileContentLines = fileContent.split("\n");
+        console.log(`fileContentLines: ${fileContentLines}`);
+        for (let fileContentLine of fileContentLines) {
+            console.log(`fileContentLine: ${fileContentLine}`);
+            streamBashSaveFileContent.write(fileContentLine + "\n");
+        }
+        // streamBashSaveFileContent.write(fileContent + "\n");
+        streamBashSaveFileContent.end();
+        await new Promise((resolve, reject) => {
+            streamBashSaveFileContent.on("end", resolve);
+            streamBashSaveFileContent.on("error", reject);
+        });
+        console.log(`saveFileContent outputBashSaveFileContent: ${outputBashSaveFileContent}`);
+    }
+    async getFileContent(filePath) {
+        if (!this.container) {
+            return undefined;
+        }
+        // check if filePath is a file or a directory
+        const execBashTestFileDir = await this.container.exec({
+            AttachStdout: true,
+            AttachStderr: true,
+            Cmd: ["/bin/bash", "-c", `if test -f ${filePath}; then echo 'file exists'; else echo 'file not exists'; fi`],
+        });
+        const streamBash = await execBashTestFileDir.start({ Detach: false, stdin: true });
+        let outputBashTestFileDir = "";
+        streamBash.on("data", (chunk) => {
+            outputBashTestFileDir += chunk.toString().trim();
+        });
+        await new Promise((resolve, reject) => {
+            streamBash.on("end", resolve);
+            streamBash.on("error", reject);
+        });
+        console.log(`getFileContent outputBashTestFileDir: ${outputBashTestFileDir}`);
+        if (!outputBashTestFileDir.includes('file exists')) {
+            return undefined;
+        }
+        const execBashCatFile = await this.container.exec({
+            AttachStdout: true,
+            AttachStderr: true,
+            Cmd: ["/bin/bash", "-c", `cat ${filePath}`],
+        });
+        const streamBashCatFile = await execBashCatFile.start({ Detach: false, stdin: true });
+        let outputBashCatFile = "";
+        streamBashCatFile.on("data", (chunk) => {
+            let chunkStr = chunk.toString().trim();
+            // Remove leading control characters except newlines (\n)
+            chunkStr = chunkStr.replace(/^[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]+/, "");
+            outputBashCatFile += chunkStr;
+        });
+        await new Promise((resolve, reject) => {
+            streamBashCatFile.on("end", resolve);
+            streamBashCatFile.on("error", reject);
+        });
+        console.log(`getFileContent outputBashCatFile: ${outputBashCatFile}`);
+        return outputBashCatFile;
     }
     async getFileDirectory() {
         if (!this.container) {

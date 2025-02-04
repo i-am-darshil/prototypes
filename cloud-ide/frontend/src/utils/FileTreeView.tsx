@@ -5,7 +5,7 @@ import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 import { TreeItem } from '@mui/x-tree-view/TreeItem';
 import { useWebSocket } from "@/contexts/WebSocketContext"
 
-export function FileTreeView({project_name}: {project_name: string}) {
+export default function FileTreeView({project_name}: {project_name: string}) {
 
   const { socket } = useWebSocket();
 
@@ -15,26 +15,26 @@ export function FileTreeView({project_name}: {project_name: string}) {
       name: project_name
     })
 
-    socket?.on("file-directory-response", (data) => {
+    const handler = (data: any) => {
       console.log(`file-directory-response: ${JSON.stringify(data)}`)
       setFolderStructure(data.output)
-    })
-  }, [socket])
-
-  const [folderStructure, setFolderStructure] = React.useState<any>({
-    "sub1": {
-      "sub2": {
-        "abc2.txt": null
-      },
-      "abc1.txt": null
-    },
-    "sub2": {
-      "abc.txt": null
     }
-  });
+
+    socket?.on("file-directory-response", handler)
+
+    return () => {
+      socket?.off("file-directory-response", handler);
+    };
+  }, [socket, project_name])
+
+  const [folderStructure, setFolderStructure] = React.useState<any>({});
 
   const onClickListener = (itemId: any) => {
     console.log(itemId)
+    socket?.emit("file-selected-request", {
+      name: project_name,
+      filePath: `/${itemId}`
+    })
   }
 
   const convertToTreeItems = (data: any, parentId = '') => {

@@ -7,6 +7,17 @@ const Terminal = ({project_name}: {project_name: string}) => {
   const [input, setInput] = useState<string>(""); // Stores current user input
   const { socket } = useWebSocket();
 
+  // React.useEffect(() => {
+  //   console.log(`Terminal useEffect socket?.id: ${socket?.id}`)
+  //   // if (!socket?.hasListeners("terminal-run-command-response")) {
+  //     socket?.on("terminal-run-command-response", (data) => {
+  //       console.log(JSON.stringify(data))
+  //       console.log("terminal-run-command-response event recieved")
+  //       setOutput((prev) => [...prev, `=> ${data.output.trim()}`]); // Show command in terminal
+  //     })
+  //   // }
+  // }, [socket])
+
 
   // Handle user input submission
   const handleSubmit = (e: React.FormEvent) => {

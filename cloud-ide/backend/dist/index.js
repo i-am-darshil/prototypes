@@ -45,8 +45,36 @@ io.on("connection", (socket) => {
         console.log(`file-directory-response: ${JSON.stringify(output)}`);
         socket.emit("file-directory-response", {
             name: project?.name,
-            output: output
+            output: output,
         });
+    });
+    socket.on("file-selected-request", async (data) => {
+        console.log("file-selected-request:", data, socket.id);
+        // console.log(JSON.stringify(PROJECT_NAME_TO_PROJECT_MAP));
+        const project = PROJECT_NAME_TO_PROJECT_MAP[data.name];
+        let output = "";
+        const filePath = data.filePath;
+        if (project) {
+            output = await project.getFileContent(filePath);
+            if (output != undefined) {
+                socket.emit("file-content-response", {
+                    name: project?.name,
+                    type: project?.type,
+                    output: output,
+                    filePath: filePath
+                });
+            }
+        }
+    });
+    socket.on("save-file-content-request", async (data) => {
+        console.log("save-file-content-request:", data, socket.id);
+        // console.log(JSON.stringify(PROJECT_NAME_TO_PROJECT_MAP));
+        const project = PROJECT_NAME_TO_PROJECT_MAP[data.name];
+        let output = "";
+        const filePath = data.filePath;
+        if (project) {
+            output = await project.saveFileContent(filePath, data.fileContent);
+        }
     });
     socket.on("terminal-run-command", async (data) => {
         console.log("terminal-run-command:", data, socket.id);
@@ -61,16 +89,24 @@ io.on("connection", (socket) => {
             const stream = await project.runCommand(command);
             if (stream) {
                 // Get the output of the Python command
-                let output = '';
-                stream.on('data', (data) => {
+                let output = "";
+                stream.on("data", (data) => {
                     output += data.toString();
                 });
-                stream.on('end', () => {
+                stream.on("end", async () => {
                     console.log(`${command} command output:`, output);
                     socket.emit("terminal-run-command-response", {
                         name: project?.name,
-                        output: output
+                        output: output,
                     });
+                    if (command.includes("mkdir") || command.includes("touch") || command.includes("rm")) {
+                        const fileDirOutput = await project.getFileDirectory();
+                        console.log(`file-directory-response: ${JSON.stringify(fileDirOutput)}`);
+                        socket.emit("file-directory-response", {
+                            name: project?.name,
+                            output: fileDirOutput,
+                        });
+                    }
                 });
                 return;
             }
@@ -80,12 +116,12 @@ io.on("connection", (socket) => {
         }
         socket.emit("terminal-run-command-response", {
             name: project?.name,
-            output: output
+            output: output,
         });
     });
     // Example event listener
     socket.on("create-project", async (data) => {
-        console.log("Project Data:", data);
+        console.log("create-project:", data);
         const project = new project_1.default(data.name, data.type, data.host);
         PROJECT_NAME_TO_PROJECT_MAP[project.name] = project;
         await project.create();

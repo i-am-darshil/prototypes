@@ -61,7 +61,13 @@ export default function HomepageForm() {
       type: values.projectType,
       host: values.hostName,
     });
-    router.push(`/project/${values.projectName}?projectType=${values.projectType}`)
+
+    socket.on("create-project-success", (data:any) => {
+      console.log("create-project-success: ", JSON.stringify(data))
+      if (data.status == "done") {
+        router.push(`/project/${data.name}?projectType=${data.type}`)
+      }
+    })
   }
 
 

@@ -1,8 +1,11 @@
-import {FileTreeView} from "@/utils/FileTreeView";
+import FileTreeView from "@/utils/FileTreeView";
 import { CodeEditorComponent } from "@/utils/CodeEditor";
 import Terminal from "@/components/custom-terminal"
 import { useWebSocket } from "@/contexts/WebSocketContext"
 import React from "react";
+import dynamic from 'next/dynamic'
+
+
 
 export default async function Page({
   params,
@@ -14,7 +17,7 @@ export default async function Page({
   console.log(`project_id: ${project_name}`)
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen" suppressHydrationWarning>
       {/* Sidebar */}
       <div className="w-64 bg-gray-800 text-white p-2 border border-solid border-gray-400">
         <h2 className="text-lg font-bold mb-2">File Explorer</h2>

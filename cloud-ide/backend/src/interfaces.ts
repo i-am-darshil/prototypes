@@ -18,9 +18,22 @@ type FileDirectoryRunEvent = {
   name: string,
 }
 
+type FileSelectedRequestEvent = {
+  name: string,
+  filePath: string,
+}
+
+type FileSaveContentRequestEvent = {
+  name: string,
+  filePath: string,
+  fileContent: string
+}
+
 export {
   createProjectEvent,
   projectDetailsEvent,
   TerminalRunEvent,
-  FileDirectoryRunEvent
+  FileDirectoryRunEvent,
+  FileSelectedRequestEvent,
+  FileSaveContentRequestEvent
 }
