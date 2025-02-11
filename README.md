@@ -25,3 +25,11 @@
 - [ ] For a past active project, start that particular docker container. Ideally, would need to handle initialising the container with the file system, packages. Currently out of scope. ✅
 - [ ] Commands in terminal should be relayed to the terminal in docker container. ✅
 - [ ] Real time code updates should be persisted in local file system (ideally to s3 periodically as well) and is mounted to docker container to keep things simple. ✅
+
+### Conflict Free Replicated Data Types - Last Write Wins Dictionary
+- [ ] Understand Conflict Free Replica Data Types (CRDT) ✅
+- [ ] Implement Last Write Wins Dictionary ✅
+- [ ] Think of multithreading scenarios ✅
+- [ ] Support lookup, add, remove & update operations ✅
+- [ ] Implement Routing - GET, POST, PUT, DELETE ✅
+- [ ] Add unit tests ✅
