@@ -7,10 +7,11 @@ from read_write_lock import RWLock
 
 
 class TestRWLock:
-    @pytest.fixture(scope="class")
+    @pytest.fixture()
     def rw_lock(self):
         return RWLock()
 
+    # Tests if multiple readers can read simultaneously
     def test_multiple_readers_reading(self, rw_lock):
         event_obj = threading.Event()
 
@@ -18,7 +19,7 @@ class TestRWLock:
             event_obj.wait()
             rw_lock.acquire_read_lock()
             time.sleep(0.1)
-            assert rw_lock._readers >= 1
+            assert rw_lock._readers > 1
             rw_lock.release_read_lock()
 
         readers = [threading.Thread(target=reading) for i in range(10)]
@@ -28,6 +29,7 @@ class TestRWLock:
         for r in readers:
             r.join()
 
+    # Tests if a writer can write exclusively (without simultaneous readers/writers)
     def test_single_writer_writing_exclusively(self, rw_lock):
         event_obj = threading.Event()
 
