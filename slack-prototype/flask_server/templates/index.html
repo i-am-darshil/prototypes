@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Slack's client</title>
+</head>
+<body>
+    <h2>WebSocket Client</h2>
+    <p id="wsStatus">Connecting...</p>
+    <div id = "user">
+        <h2>Connect User to server</h2>
+        <input class="findUser" id="userNameInput" type="text" placeholder="Create a user">
+        <button class="findUser" id="userNameButton">Connect User To Server</button>
+        <p></p>
+    </div>
+
+    <div id = "channel">
+        <h2>Create Channel</h2>
+        <input class="findChannel" id="channelInput" type="text" placeholder="Create a channel">
+        <button class="findChannel" id="channelButton">Find Channel</button>
+        <p></p>
+    </div>
+
+    <div id = "membership">
+        <h2>Subscribe to channel</h2>
+
+        <label for="membershipUsernameInput">Username: </label>
+        <input class="findMembership" id="membershipUsernameInput" type="text" placeholder="Enter username">
+
+        <label for="membershipChannelInput">Channel Name: </label>
+        <input class="findMembership" id="membershipChannelInput" type="text" placeholder="Enter channel name">
+
+        <button class="findMembership" id="membershipButton">Subscribe</button>
+        <p></p>
+    </div>
+
+    <div id = "userMembership">
+        <h2>Check User Membership</h2>
+
+        <label for="userMembershipInput">Username: </label>
+        <input class="userMembership" id="userMembershipInput" type="text" placeholder="Create a user">
+        <button class="userMembership" id="userMembershipButton">Get memberships</button>
+        <p></p>
+    </div>
+
+    <div id = "message">
+        <h2>Your chat</h2>
+        <label for="messageUsernameInput">Username: </label>
+        <input class="message" id="messageUsernameInput" type="text" placeholder="Enter username">
+
+        <label for="messageChannelInput">Channel Name: </label>
+        <input class="message" id="messageChannelInput" type="text" placeholder="Enter channel name">
+
+        <label for="messageInput">Message: </label>
+        <input id="messageInput" type="text" placeholder="Type a message">
+        <button id="messageButton" onclick="">Send</button>
+        <div id="messages">
+            <h3>Messages for channel will be shown here 👇</h3>
+        </div>
+    </div>
+
+
+    <script type="module" src="{{ url_for('static', filename='index.js') }}"></script>
+</body>
+</html>

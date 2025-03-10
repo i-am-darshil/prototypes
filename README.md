@@ -33,3 +33,20 @@
 - [ ] Support lookup, add, remove & update operations ✅
 - [ ] Implement Routing - GET, POST, PUT, DELETE ✅
 - [ ] Add unit tests ✅
+
+### Pessimistic & Optimistic Locking
+- [ ] Understand Pessimistic & Optimistic Locking ✅
+- [ ] Implement using SQL alchemy ✅
+- [ ] Prototype it ✅
+
+### Slack Prototype
+#### Flask server
+- [ ] Serves UI ✅
+- [ ] Use to manage CRUD calls for users, channels, memberships ✅
+- [ ] Use as connection manager to guide users to the websocket server ✅
+- [ ] Upon receiving message, persist in database (slack prefers durability over latency as it is an enterprise application) ✅
+- [ ] Upon persisting, put the message to redis pub/sub for websockets to consume ✅
+
+#### Websocket server
+- [ ] Spawn 2 websocket servers to mimic users from same channel connected to different servers ✅
+- [ ] Send message to the relevant user subscribed to channel upon receiving message from pub/sub ✅
