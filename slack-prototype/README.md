@@ -30,7 +30,7 @@ Messages
 - created_at
 - sender_name
 - channel_name
-- Compound Index - (channel_name, user_name)
+- Compound Index - (channel_name, created_at)
 
 ### Installation
 ```bash

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat with Ollama</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <form id="loginForm">
+    <input type="text" id="username" placeholder="Username" required><br>
+    <input type="password" id="password" placeholder="Password" required><br>
+    <button id="loginButton" type="submit">Login</button>
+  </form>
+
+  <div id="chatContainer" style="display:none;">
+    <h3>Hello, <span id="user"></span></h3>
+    <div id="chatBox"></div>
+    <textarea id="prompt" placeholder="Ask something..."></textarea>
+    <button onclick="sendPrompt()">Send</button>
+    <p>Credits Used: <span id="credits">0</span></p>
+  </div>
+  <div>
+    <button id="signup"><a href="/signup">Signup</a></button>
+  </div>
+  <script src="https://cdn.jsdelivr.net/gh/MarketingPipeline/Markdown-Tag/markdown-tag-GitHub.js"></script> 
+  <script src="/static/main.js"></script>
+</body>
+</html>
