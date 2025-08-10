@@ -42,6 +42,12 @@ class NaiveBayes:
             total_words_in_cat = sum(self.word_counts[c].values())
             for w in words:
                 wc = self.word_counts[c].get(w, 0)
+                """
+                what if our test document contains a word we never saw in training for that category?
+                wc=0, i.e P(w∣c)=0, math.log(0) = -inf
+                Laplace smoothing: Pretend we’ve seen every possible word at least once in each category. 
+                Its an approximation, but it helps avoid zero probabilities.
+                """
                 log_prob += math.log((wc+1)/(total_words_in_cat+V)) # add 1 to wc and V to total_words_in_cat to avoid zero probability
             if log_prob>best_score:
                 best, best_score = c, log_prob
