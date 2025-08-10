@@ -47,12 +47,12 @@ def build_model():
 
     nb=NaiveBayes()
     nb.train(train_data)
-    print(f"Trained on: {len(train_data)} emails. Model: {nb.cat_counts}")
+    print(f"Trained on: {len(train_data)} emails. Model: {nb}")
     return nb, test_data
 
 
 def test_model(model, test_data):
-  print(f"Testing {len(test_data)} emails.")
+  print(f"Testing {len(test_data)} emails. model: {model}")
   num_correct_spam = 0
   num_total_spam = 0
 
@@ -84,13 +84,3 @@ if __name__ == '__main__':
 
     if test_data:
         test_model(model, test_data)
-
-    # mails = [
-    #   'Final call to claim your GGU MBA scholarship',
-    #   'claim your free $ 1000 home depot gift card .',
-    #   're : resco database and customer capture  steve ,  krishna from my group . krishna can also advise you on resco participation .  vince'
-    # ]
-
-    # for mail in mails:
-    #   normalized_mail = normalize(mail)
-    #   print(f"For mail: {mail}, Category: {model.predict(normalized_mail)}")

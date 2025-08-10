@@ -9,7 +9,9 @@ class NaiveBayes:
         self.total_words=total_words
     
     def __str__(self) -> str:
-        return f"NaiveBayes(cat_counts={self.cat_counts}, word_counts={self.word_counts}, vocab={self.vocab}, total_docs={self.total_docs}, total_words={self.total_words})"
+        return f"NaiveBayes(cat_counts={self.cat_counts}, \
+        word_counts={[(k, len(v)) for k, v in self.word_counts.items()]}, \
+        vocab={len(self.vocab)}, total_docs={self.total_docs}, total_words={self.total_words})"
 
     def train(self, docs):
         for words, cat in docs: 
@@ -31,35 +33,18 @@ class NaiveBayes:
                 'total_docs': self.total_docs,
                 'total_words': self.total_words
             }, f)
-
-    def predict_v1(self, words):
-        best, best_score = None, -1e99
-        V = len(self.vocab)
-        for c, cnt in self.cat_counts.items():
-            log_prob = math.log(cnt/self.total_docs)
-            total_words = sum(self.word_counts[c].values())
-            for w in words:
-                wc = self.word_counts[c].get(w, 0)
-                log_prob += math.log((wc+1)/(total_words+V))
-            if log_prob>best_score:
-                best, best_score = c, log_prob
-            print(f"For words: {words}, Category: {c}, Score: {log_prob}")
-        return best
-        
+       
     def predict(self, words):
         best, best_score = None, -1e99
         V = len(self.vocab)
         for c, cnt in self.cat_counts.items():
-            log_prob = math.log(cnt/self.total_words)
+            log_prob = math.log(cnt/self.total_docs) # probability of category, i.e number of docs in category / total number of docs
             total_words_in_cat = sum(self.word_counts[c].values())
             for w in words:
-                # wc = self.word_counts[c][w]
                 wc = self.word_counts[c].get(w, 0)
-                log_prob += math.log((wc+1)/(total_words_in_cat))
+                log_prob += math.log((wc+1)/(total_words_in_cat+V)) # add 1 to wc and V to total_words_in_cat to avoid zero probability
             if log_prob>best_score:
                 best, best_score = c, log_prob
-        
-            # print(f"For words: {words}, Category: {c}, Score: {log_prob}")
         return best
 
 def get_model():
@@ -75,23 +60,10 @@ def get_model():
             )
             return nb
     return None
-# docs = [
-#     (['free', 'money', 'lottery', 'prize'], 'spam'),
-#     (['winner', 'congratulations', 'prize', 'money'], 'spam'),
-#     (['here', 'is', 'the', 'transcript'], 'ham'),
-#     (['how', 'was', 'the', 'meeting'], 'ham'),
-# ]
-
-# words = ['money', 'hi', 'hello', 'hi']
-
-# nb = NaiveBayes()
-# nb.train(docs)
-# print(nb.predict(words))
 
 if __name__ == '__main__':
     nb = get_model()
     if nb:
-        # print(nb)
         # print most frequent words in each category using max heap
         for cat, word_counts in nb.word_counts.items():
             heap = []
@@ -103,8 +75,7 @@ if __name__ == '__main__':
                         heapq.heappop(heap)
                         heapq.heappush(heap, (count, word))
             print(f"Most frequent words in {cat}: {heap}")
-  
-
+        
         sent_to_predict = [
           'Final call to claim your GGU MBA scholarship',
           'New device added to account',

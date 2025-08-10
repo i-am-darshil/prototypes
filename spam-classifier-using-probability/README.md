@@ -15,5 +15,10 @@ python -m spacy download en_core_web_sm
 
 ## Run
 ```bash
-python main_v2.py
+(venv_spam_classifier) {16:32}~/Documents/my-projects/prototypes/spam-classifier-using-probability:main ✗ ➭ python main_v2.py
+> Testing 1146 emails. model: NaiveBayes(cat_counts=Counter({'ham': 3510, 'spam': 1072}), word_counts=[('ham', 18366), ('spam', 12605)], vocab=25559, total_docs=4582, total_words=601550)
+> Correct Spam: 294, Total Spam: 296
+> Accuracy Spam: 0.9932432432432432
+> Correct Ham: 833, Total Ham: 850
+> Accuracy Ham: 0.98
 ```
